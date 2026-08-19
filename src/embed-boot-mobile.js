@@ -1,2 +1,8 @@
-// Mobile embed boot — only init below 480px
-var w=document.getElementById('falwrap_falmobile01');if(!w)return;function pad(){var cb=w.offsetParent||w.parentElement;if(!cb)return;var cs=getComputedStyle(cb);w.style.top=cs.paddingTop;w.style.right=cs.paddingRight;w.style.bottom=cs.paddingBottom;w.style.left=cs.paddingLeft;}function fitSvg(){var s=w.firstElementChild;if(!s)return;s.setAttribute('preserveAspectRatio','xMidYMid slice');s.style.width='100%';s.style.height='100%';s.style.maxWidth='none';}if(window.matchMedia('(max-width:479px)').matches){pad();FalGlitchDustWebflow.mountEmbed('falwrap_falmobile01','faldata_falmobile01');fitSvg();window.addEventListener('resize',pad);}
+// Mobile embed boot — only init below 480px (wrapper is fixed full-viewport via CSS)
+var w=document.getElementById('falwrap_falmobile01');if(!w)return;
+var mq=window.matchMedia('(max-width:479px)');
+function fitSvg(){var s=w.firstElementChild;if(!s)return;s.setAttribute('preserveAspectRatio','xMidYMid slice');s.style.width='100%';s.style.height='100%';s.style.maxWidth='none';}
+function mount(){if(!mq.matches)return;FalGlitchDustWebflow.mountEmbed('falwrap_falmobile01','faldata_falmobile01');fitSvg();}
+function onMq(){if(mq.matches)mount();else w.innerHTML='';}
+if(mq.matches)mount();
+if(mq.addEventListener)mq.addEventListener('change',onMq);else mq.addListener(onMq);
