@@ -241,12 +241,13 @@
   "paletteMedia": [
     {
       "color": "#ffff00",
-      "src": "https://cdn.prod.website-files.com/6a67f5c7802aff69894804cd/6a8638e07c0c66fa031fc348_slower-pixel-shift.gif"
+      "src": "https://cdn.prod.website-files.com/6a67f5c7802aff69894804cd/6a863a6d393e3619ed6a503d_yellow-pixel-shift.gif"
     }
   ],
   "sequentialLoad": true,
-  "sequentialLoadDuration": 8,
+  "sequentialLoadDuration": 6,
   "hoverClear": true,
   "hoverClearRadius": 100,
-  "timeScale": 0.5
+  "timeScale": 0.625,
+  "wasdShift": true
 }
