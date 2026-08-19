@@ -1,0 +1,8 @@
+{
+  "name": "ai-sn",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-embed.mjs"
+  }
+}
