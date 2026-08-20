@@ -61,7 +61,7 @@
       card.style.bottom = 'auto';
     }
 
-    function quadrantPositions() {
+    function snapPositions() {
       var sr = stageRect();
       var w = card.offsetWidth;
       var h = card.offsetHeight;
@@ -70,19 +70,35 @@
         { x: sr.width - w - PAD, y: PAD },
         { x: PAD, y: sr.height - h - PAD },
         { x: sr.width - w - PAD, y: sr.height - h - PAD },
+        { x: (sr.width - w) / 2, y: (sr.height - h) / 2 },
       ];
     }
 
-    function nearestQuadrant(cx, cy) {
+    function nearestSnap(cx, cy) {
       var sr = stageRect();
-      var qx = cx - sr.left < sr.width / 2 ? 0 : 1;
-      var qy = cy - sr.top < sr.height / 2 ? 0 : 1;
-      return qy * 2 + qx;
+      var positions = snapPositions();
+      var relX = cx - sr.left;
+      var relY = cy - sr.top;
+      var w = card.offsetWidth;
+      var h = card.offsetHeight;
+      var best = 0;
+      var bestD = Infinity;
+      for (var i = 0; i < positions.length; i++) {
+        var p = positions[i];
+        var px = p.x + w / 2;
+        var py = p.y + h / 2;
+        var d = (relX - px) * (relX - px) + (relY - py) * (relY - py);
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+        }
+      }
+      return best;
     }
 
-    function snapToQuadrant(q, animate) {
+    function snapToSlot(q, animate) {
       currentQ = q;
-      var pos = quadrantPositions()[q];
+      var pos = snapPositions()[q];
       if (pos) setPos(pos.x, pos.y, animate !== false);
       updateLines();
     }
@@ -145,7 +161,7 @@
       x = Math.max(0, Math.min(sr.width - w, x));
       y = Math.max(0, Math.min(sr.height - h, y));
       setPos(x, y, false);
-      currentQ = nearestQuadrant(x + w / 2 + sr.left, y + h / 2 + sr.top);
+      currentQ = nearestSnap(x + w / 2 + sr.left, y + h / 2 + sr.top);
       updateLines();
     });
 
@@ -157,8 +173,8 @@
         card.releasePointerCapture(e.pointerId);
       } catch (err) {}
       var cr = cardRect();
-      snapToQuadrant(
-        nearestQuadrant(cr.left + cr.width / 2, cr.top + cr.height / 2),
+      snapToSlot(
+        nearestSnap(cr.left + cr.width / 2, cr.top + cr.height / 2),
         true
       );
     }
@@ -175,10 +191,10 @@
     );
 
     window.addEventListener('resize', function () {
-      snapToQuadrant(currentQ, false);
+      snapToSlot(currentQ, false);
     });
 
-    snapToQuadrant(Math.floor(Math.random() * 4), false);
+    snapToSlot(Math.floor(Math.random() * 5), false);
     requestAnimationFrame(updateLines);
   }
 
