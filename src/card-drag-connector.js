@@ -6,7 +6,6 @@
   var PAD = 12;
   var SNAP_MS = 420;
   var SNAP_EASE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
-  var STORAGE_KEY = 'ai-sn-card-quadrant';
 
   function init() {
     if (window.matchMedia('(max-width:479px)').matches) return;
@@ -85,9 +84,6 @@
       currentQ = q;
       var pos = quadrantPositions()[q];
       if (pos) setPos(pos.x, pos.y, animate !== false);
-      try {
-        sessionStorage.setItem(STORAGE_KEY, String(q));
-      } catch (e) {}
       updateLines();
     }
 
@@ -182,11 +178,7 @@
       snapToQuadrant(currentQ, false);
     });
 
-    var saved = null;
-    try {
-      saved = sessionStorage.getItem(STORAGE_KEY);
-    } catch (e2) {}
-    snapToQuadrant(saved !== null ? parseInt(saved, 10) || 0 : 0, false);
+    snapToQuadrant(Math.floor(Math.random() * 4), false);
     requestAnimationFrame(updateLines);
   }
 
