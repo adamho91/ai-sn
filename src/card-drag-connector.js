@@ -35,9 +35,12 @@
     card.style.webkitUserSelect = 'none';
 
     var dragging = false;
+    var animating = false;
     var offX = 0;
     var offY = 0;
     var currentQ = 0;
+    var lineRaf = 0;
+    var snapTimer = 0;
 
     function stageRect() {
       return stage.getBoundingClientRect();
@@ -99,8 +102,34 @@
     function snapToSlot(q, animate) {
       currentQ = q;
       var pos = snapPositions()[q];
-      if (pos) setPos(pos.x, pos.y, animate !== false);
-      updateLines();
+      if (!pos) return;
+      var doAnimate = animate !== false;
+      setPos(pos.x, pos.y, doAnimate);
+      if (doAnimate) {
+        animating = true;
+        startLineLoop();
+        clearTimeout(snapTimer);
+        snapTimer = setTimeout(function () {
+          animating = false;
+          updateLines();
+        }, SNAP_MS + 40);
+      } else {
+        updateLines();
+      }
+    }
+
+    function roundPx(v) {
+      return Math.round(v * 2) / 2;
+    }
+
+    function startLineLoop() {
+      if (lineRaf) return;
+      function tick() {
+        updateLines();
+        if (dragging || animating) lineRaf = requestAnimationFrame(tick);
+        else lineRaf = 0;
+      }
+      lineRaf = requestAnimationFrame(tick);
     }
 
     function allConnectorPairs() {
@@ -131,10 +160,10 @@
       svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
       for (var j = 0; j < lines.length; j++) {
         var pts = pairs[j];
-        lines[j].setAttribute('x1', pts.from.x);
-        lines[j].setAttribute('y1', pts.from.y);
-        lines[j].setAttribute('x2', pts.to.x);
-        lines[j].setAttribute('y2', pts.to.y);
+        lines[j].setAttribute('x1', roundPx(pts.from.x));
+        lines[j].setAttribute('y1', roundPx(pts.from.y));
+        lines[j].setAttribute('x2', roundPx(pts.to.x));
+        lines[j].setAttribute('y2', roundPx(pts.to.y));
       }
     }
 
@@ -144,6 +173,7 @@
       card.setPointerCapture(e.pointerId);
       card.style.cursor = 'grabbing';
       setTransition(false);
+      startLineLoop();
       var cr = cardRect();
       var sr = stageRect();
       offX = e.clientX - cr.left;
@@ -162,7 +192,6 @@
       y = Math.max(0, Math.min(sr.height - h, y));
       setPos(x, y, false);
       currentQ = nearestSnap(x + w / 2 + sr.left, y + h / 2 + sr.top);
-      updateLines();
     });
 
     function endDrag(e) {
@@ -181,14 +210,6 @@
 
     card.addEventListener('pointerup', endDrag);
     card.addEventListener('pointercancel', endDrag);
-
-    card.addEventListener(
-      'transitionend',
-      function (e) {
-        if (e.propertyName === 'left' || e.propertyName === 'top') updateLines();
-      },
-      true
-    );
 
     window.addEventListener('resize', function () {
       snapToSlot(currentQ, false);
