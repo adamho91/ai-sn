@@ -19,10 +19,14 @@
     svg.setAttribute('aria-hidden', 'true');
     svg.style.cssText =
       'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20;overflow:visible';
-    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('stroke', '#c9c9c9');
-    line.setAttribute('stroke-width', '1');
-    svg.appendChild(line);
+    var lines = [];
+    for (var i = 0; i < 4; i++) {
+      var lineEl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      lineEl.setAttribute('stroke', '#c9c9c9');
+      lineEl.setAttribute('stroke-width', '1');
+      svg.appendChild(lineEl);
+      lines.push(lineEl);
+    }
     stage.appendChild(svg);
 
     card.style.touchAction = 'none';
@@ -83,36 +87,42 @@
       try {
         sessionStorage.setItem(STORAGE_KEY, String(q));
       } catch (e) {}
-      updateLine();
+      updateLines();
     }
 
-    // TL card → external BR; TR → BL; BL → TR; BR → TL
-    function connectorPoints(q) {
+    function allConnectorPairs() {
       var sr = stageRect();
       var cr = cardRect();
-      var cardAnchors = [
-        { x: cr.right - sr.left, y: cr.bottom - sr.top },
-        { x: cr.left - sr.left, y: cr.bottom - sr.top },
-        { x: cr.right - sr.left, y: cr.top - sr.top },
+      var cardCorners = [
         { x: cr.left - sr.left, y: cr.top - sr.top },
+        { x: cr.right - sr.left, y: cr.top - sr.top },
+        { x: cr.left - sr.left, y: cr.bottom - sr.top },
+        { x: cr.right - sr.left, y: cr.bottom - sr.top },
       ];
       var extCorners = [
-        { x: sr.width, y: sr.height },
-        { x: 0, y: sr.height },
-        { x: sr.width, y: 0 },
         { x: 0, y: 0 },
+        { x: sr.width, y: 0 },
+        { x: 0, y: sr.height },
+        { x: sr.width, y: sr.height },
       ];
-      return { from: cardAnchors[q], to: extCorners[q] };
+      var pairs = [];
+      for (var i = 0; i < 4; i++) {
+        pairs.push({ from: cardCorners[i], to: extCorners[i] });
+      }
+      return pairs;
     }
 
-    function updateLine() {
+    function updateLines() {
       var sr = stageRect();
-      var pts = connectorPoints(currentQ);
+      var pairs = allConnectorPairs();
       svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
-      line.setAttribute('x1', pts.from.x);
-      line.setAttribute('y1', pts.from.y);
-      line.setAttribute('x2', pts.to.x);
-      line.setAttribute('y2', pts.to.y);
+      for (var j = 0; j < lines.length; j++) {
+        var pts = pairs[j];
+        lines[j].setAttribute('x1', pts.from.x);
+        lines[j].setAttribute('y1', pts.from.y);
+        lines[j].setAttribute('x2', pts.to.x);
+        lines[j].setAttribute('y2', pts.to.y);
+      }
     }
 
     card.addEventListener('pointerdown', function (e) {
@@ -139,7 +149,7 @@
       y = Math.max(0, Math.min(sr.height - h, y));
       setPos(x, y, false);
       currentQ = nearestQuadrant(x + w / 2 + sr.left, y + h / 2 + sr.top);
-      updateLine();
+      updateLines();
     });
 
     function endDrag(e) {
@@ -162,7 +172,7 @@
     card.addEventListener(
       'transitionend',
       function (e) {
-        if (e.propertyName === 'left' || e.propertyName === 'top') updateLine();
+        if (e.propertyName === 'left' || e.propertyName === 'top') updateLines();
       },
       true
     );
@@ -176,7 +186,7 @@
       saved = sessionStorage.getItem(STORAGE_KEY);
     } catch (e2) {}
     snapToQuadrant(saved !== null ? parseInt(saved, 10) || 0 : 0, false);
-    requestAnimationFrame(updateLine);
+    requestAnimationFrame(updateLines);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
