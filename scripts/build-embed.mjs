@@ -68,11 +68,18 @@ writeFileSync(
   `(function(){${cardDrag}})();\n`
 );
 
+const directionalTap = stripLeadingComment(read('src/directional-tap.js'));
+writeFileSync(
+  join(root, 'dist/fal-directional-tap.js'),
+  `(function(){${directionalTap}})();\n`
+);
+
 // Site head snippet (paste or deploy via Webflow custom code)
 const siteHead = `<!-- fal glitch + typewriter + card drag (github.com/adamho91/ai-sn) -->
 <script defer src="${CDN_BASE}/fal-glitch-engine.js"></script>
 <script defer src="${CDN_BASE}/fal-typewriter.js"></script>
 <script defer src="${CDN_BASE}/fal-card-drag.js"></script>
+<script defer src="${CDN_BASE}/fal-directional-tap.js"></script>
 `;
 writeFileSync(join(root, 'dist/site-head.html'), siteHead);
 
@@ -96,6 +103,7 @@ writeFileSync(join(root, 'dist/mobile-embed.html'), mobile);
 console.log('Built dist/fal-glitch-engine.js (' + engine.length + ' chars)');
 console.log('Built dist/fal-typewriter.js (' + typewriter.length + ' chars)');
 console.log('Built dist/fal-card-drag.js (' + cardDrag.length + ' chars)');
+console.log('Built dist/fal-directional-tap.js (' + directionalTap.length + ' chars)');
 console.log('Built dist/desktop-embed.html (' + desktop.length + ' chars)');
 console.log('Built dist/mobile-embed.html (' + mobile.length + ' chars)');
 console.log('CDN base:', CDN_BASE);

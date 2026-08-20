@@ -35,6 +35,10 @@
 
     var dragging = false;
     var animating = false;
+    var pendingDrag = false;
+    var dragStartX = 0;
+    var dragStartY = 0;
+    var DRAG_PX = 8;
     var offX = 0;
     var offY = 0;
     var currentQ = 0;
@@ -168,11 +172,10 @@
 
     card.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
-      dragging = true;
+      pendingDrag = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
       card.setPointerCapture(e.pointerId);
-      card.style.cursor = 'grabbing';
-      setTransition(false);
-      startLineLoop();
       var cr = cardRect();
       var sr = stageRect();
       offX = e.clientX - cr.left;
@@ -181,6 +184,16 @@
     });
 
     card.addEventListener('pointermove', function (e) {
+      if (pendingDrag && !dragging) {
+        var mdx = e.clientX - dragStartX;
+        var mdy = e.clientY - dragStartY;
+        if (mdx * mdx + mdy * mdy < DRAG_PX * DRAG_PX) return;
+        dragging = true;
+        pendingDrag = false;
+        card.style.cursor = 'grabbing';
+        setTransition(false);
+        startLineLoop();
+      }
       if (!dragging) return;
       var sr = stageRect();
       var x = e.clientX - sr.left - offX;
@@ -194,12 +207,14 @@
     });
 
     function endDrag(e) {
-      if (!dragging) return;
-      dragging = false;
-      card.style.cursor = 'grab';
+      pendingDrag = false;
       try {
         card.releasePointerCapture(e.pointerId);
       } catch (err) {}
+      if (!dragging) return;
+      dragging = false;
+      window.__aiSnCardDidDrag = true;
+      card.style.cursor = 'grab';
       var cr = cardRect();
       snapToSlot(
         nearestSnap(cr.left + cr.width / 2, cr.top + cr.height / 2),
